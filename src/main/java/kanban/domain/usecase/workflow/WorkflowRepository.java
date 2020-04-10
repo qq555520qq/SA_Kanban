@@ -1,5 +1,6 @@
 package kanban.domain.usecase.workflow;
 
+import kanban.domain.model.Stage;
 import kanban.domain.model.Workflow;
 
 import java.util.ArrayList;
@@ -15,5 +16,25 @@ public class WorkflowRepository {
 
     public void add(Workflow workflow) {
         workflows.add(workflow);
+    }
+
+    public Workflow getWorkflowById(String workflowId) {
+
+        for (Workflow each : workflows) {
+            if (each.getWorkflowId().equalsIgnoreCase(workflowId)) {
+                return each;
+            }
+        }
+        throw new RuntimeException("Workflow is not found,id=" + workflowId);
+    }
+
+    public void save(Workflow workflow) {
+
+        for (Workflow each : workflows) {
+            if (each.getWorkflowId().equalsIgnoreCase(workflow.getWorkflowId())) {
+                workflows.set(workflows.indexOf(each), workflow);
+                break;
+            }
+        }
     }
 }

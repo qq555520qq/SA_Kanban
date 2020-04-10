@@ -12,8 +12,8 @@ public class CreateWorkflowTest {
 
     @Test
     public void Create_workflow_should_success() {
-        WorkflowRepository workflowRepositor = new WorkflowRepository();
-        CreateWorkflowUseCase createWorkflowUseCase = new CreateWorkflowUseCase(workflowRepositor);
+        WorkflowRepository workflowRepository = new WorkflowRepository();
+        CreateWorkflowUseCase createWorkflowUseCase = new CreateWorkflowUseCase(workflowRepository);
 
         CreateWorkflowInput input = new CreateWorkflowInput();
         input.setBoardId("boardId");
