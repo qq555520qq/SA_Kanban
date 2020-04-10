@@ -1,12 +1,10 @@
 package kanban.domain.usecase;
 
+import kanban.domain.Utility;
 import kanban.domain.model.Workflow;
 import kanban.domain.usecase.stage.CreateStageInput;
 import kanban.domain.usecase.stage.CreateStageOutput;
 import kanban.domain.usecase.stage.CreateStageUseCase;
-import kanban.domain.usecase.workflow.CreateWorkflowInput;
-import kanban.domain.usecase.workflow.CreateWorkflowOutput;
-import kanban.domain.usecase.workflow.CreateWorkflowUseCase;
 import kanban.domain.usecase.workflow.WorkflowRepository;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,11 +14,14 @@ import static org.junit.Assert.assertNotNull;
 
 public class CreateStageTest {
     private String workflowId;
-    private WorkflowRepository workflowRepository = new WorkflowRepository();
+    private WorkflowRepository workflowRepository;
+    private Utility utility;
 
     @Before
     public void setup() {
-        workflowId = create_workflow();
+        workflowRepository = new WorkflowRepository();
+        utility = new Utility(workflowRepository);
+        workflowId = utility.createWorkflow("boardId", "workflowName");
     }
 
     @Test
@@ -37,16 +38,12 @@ public class CreateStageTest {
         assertNotNull(output.getStageId());
     }
 
-    public String create_workflow() {
+    @Test(expected = RuntimeException.class)
+    public void GetStageNameById_should_throw_exception() {
 
-        CreateWorkflowUseCase createWorkflowUseCase = new CreateWorkflowUseCase(workflowRepository);
+        Workflow workflow = workflowRepository.getWorkflowById(workflowId);
 
-        CreateWorkflowInput input = new CreateWorkflowInput();
-        input.setBoardId("boardId");
-        input.setWorkflowName("workflow");
+        workflow.getStageNameById("12345678");
 
-        CreateWorkflowOutput output = new CreateWorkflowOutput();
-        createWorkflowUseCase.execute(input, output);
-        return output.getWorkflowId();
     }
 }

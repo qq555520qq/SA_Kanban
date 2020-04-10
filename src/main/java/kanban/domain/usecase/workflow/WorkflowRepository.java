@@ -1,6 +1,5 @@
 package kanban.domain.usecase.workflow;
 
-import kanban.domain.model.Stage;
 import kanban.domain.model.Workflow;
 
 import java.util.ArrayList;
