@@ -1,11 +1,10 @@
 package kanban.domain.adapter.repository.board;
 
 import kanban.domain.adapter.database.MySqlDatabaseHelper;
-import kanban.domain.adapter.database.BoardTable;
-import kanban.domain.adapter.database.BoardWorkflowTable;
-import kanban.domain.model.aggregate.board.Board;
+import kanban.domain.adapter.database.table.BoardTable;
+import kanban.domain.adapter.database.table.BoardWorkflowTable;
 import kanban.domain.usecase.board.repository.IBoardRepository;
-import kanban.domain.usecase.entity.BoardEntity;
+import kanban.domain.usecase.board.BoardEntity;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -32,11 +31,12 @@ public class MySqlBoardRepository implements IBoardRepository {
                 addBoardWorkflow(workflowId, board.getBoardId());
             }
 
-            String sql = String.format("Insert Into %s Values (?, ?)",
+            String sql = String.format("Insert Into %s Values (?, ?, ?)",
                     BoardTable.tableName);
             preparedStatement = sqlDatabaseHelper.getPreparedStatement(sql);
-            preparedStatement.setString(1, board.getBoardId());
-            preparedStatement.setString(2, board.getBoardName());
+            preparedStatement.setString(1, board.getUserId());
+            preparedStatement.setString(2, board.getBoardId());
+            preparedStatement.setString(3, board.getBoardName());
             preparedStatement.executeUpdate();
             sqlDatabaseHelper.transactionEnd();
         } catch (SQLException e) {
@@ -62,10 +62,12 @@ public class MySqlBoardRepository implements IBoardRepository {
                     boardId);
             resultSet = sqlDatabaseHelper.getResultSet(query);
             if (resultSet.first()) {
+                String userId = resultSet.getString(BoardTable.userId);
                 String _boardId = resultSet.getString(BoardTable.boardId);
                 String name = resultSet.getString(BoardTable.name);
 
                 board = new BoardEntity();
+                board.setUserId(userId);
                 board.setBoardId(_boardId);
                 board.setBoardName(name);
                 board.setWorkflowIds(getWorkflowIdsByBoardId(boardId));
@@ -92,12 +94,13 @@ public class MySqlBoardRepository implements IBoardRepository {
                 addBoardWorkflow(workflowId, board.getBoardId());
             }
 
-            String sql = String.format("Insert Into %s Values (?, ?) On Duplicate Key Update %s=?",
+            String sql = String.format("Insert Into %s Values (?, ?, ?) On Duplicate Key Update %s=?",
                     BoardTable.tableName, BoardTable.name);
             preparedStatement = sqlDatabaseHelper.getPreparedStatement(sql);
-            preparedStatement.setString(1, board.getBoardId());
-            preparedStatement.setString(2, board.getBoardName());
+            preparedStatement.setString(1, board.getUserId());
+            preparedStatement.setString(2, board.getBoardId());
             preparedStatement.setString(3, board.getBoardName());
+            preparedStatement.setString(4, board.getBoardName());
             preparedStatement.executeUpdate();
             sqlDatabaseHelper.transactionEnd();
         } catch (SQLException e) {
@@ -107,6 +110,43 @@ public class MySqlBoardRepository implements IBoardRepository {
             sqlDatabaseHelper.closePreparedStatement(preparedStatement);
             sqlDatabaseHelper.closeConnection();
         }
+    }
+
+    @Override
+    public List<BoardEntity> getBoardsByUserId(String userId) {
+        if (!sqlDatabaseHelper.isTransacting()) {
+            sqlDatabaseHelper.connectToDatabase();
+        }
+
+        ResultSet resultSet = null;
+        List<BoardEntity> boardEntities = new ArrayList<>();
+        try {
+            String query = String.format("Select * From %s Where %s = '%s'",
+                    BoardTable.tableName,
+                    BoardTable.userId,
+                    userId);
+            resultSet = sqlDatabaseHelper.getResultSet(query);
+            while (resultSet.next()) {
+                String boardId = resultSet.getString(BoardTable.boardId);
+                String name = resultSet.getString(BoardTable.name);
+
+                BoardEntity boardEntity = new BoardEntity();
+                boardEntity.setUserId(userId);
+                boardEntity.setBoardId(boardId);
+                boardEntity.setBoardName(name);
+                boardEntity.setWorkflowIds(getWorkflowIdsByBoardId(boardId));
+
+                boardEntities.add(boardEntity);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            sqlDatabaseHelper.closeResultSet(resultSet);
+            if (!sqlDatabaseHelper.isTransacting()) {
+                sqlDatabaseHelper.closeConnection();
+            }
+        }
+        return boardEntities;
     }
 
 

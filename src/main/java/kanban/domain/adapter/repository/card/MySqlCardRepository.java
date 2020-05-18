@@ -1,6 +1,6 @@
 package kanban.domain.adapter.repository.card;
 
-import kanban.domain.adapter.database.CardTable;
+import kanban.domain.adapter.database.table.CardTable;
 import kanban.domain.adapter.database.MySqlDatabaseHelper;
 import kanban.domain.model.aggregate.card.Card;
 import kanban.domain.usecase.card.repository.ICardRepository;

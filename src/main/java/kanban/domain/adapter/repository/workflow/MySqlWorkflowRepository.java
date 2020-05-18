@@ -1,9 +1,9 @@
 package kanban.domain.adapter.repository.workflow;
 
 import kanban.domain.adapter.database.MySqlDatabaseHelper;
-import kanban.domain.adapter.database.StageCardTable;
-import kanban.domain.adapter.database.StageTable;
-import kanban.domain.adapter.database.WorkflowTable;
+import kanban.domain.adapter.database.table.StageCardTable;
+import kanban.domain.adapter.database.table.StageTable;
+import kanban.domain.adapter.database.table.WorkflowTable;
 import kanban.domain.model.aggregate.workflow.Stage;
 import kanban.domain.model.aggregate.workflow.Workflow;
 import kanban.domain.usecase.workflow.repository.IWorkflowRepository;

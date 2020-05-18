@@ -10,6 +10,7 @@ import java.util.UUID;
 
 public class Board extends AggregateRoot {
 
+    private String userId;
     private String boardName;
     private String boardId;
     private List<String> workflowIds;
@@ -18,17 +19,26 @@ public class Board extends AggregateRoot {
         this.workflowIds = new ArrayList<>();
     }
 
-    public Board(String boardName) {
+    public Board(String userId, String boardName) {
+        this.userId = userId;
         this.boardName = boardName;
         this.boardId = UUID.randomUUID().toString();
         this.workflowIds = new ArrayList<>();
-        addDomainEvent(new BoardCreated(boardId, boardName));
+        addDomainEvent(new BoardCreated(userId, boardId, boardName));
     }
 
     public String commitWorkflow(String workflowId) {
         workflowIds.add(workflowId);
         addDomainEvent(new WorkflowCommitted(boardId, workflowId));
         return workflowId;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
     public void setBoardId(String boardId) {

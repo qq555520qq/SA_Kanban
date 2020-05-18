@@ -1,9 +1,7 @@
 package kanban.domain.usecase.workflow.commit;
 
-import kanban.domain.model.DomainEventBus;
 import kanban.domain.model.aggregate.board.Board;
-import kanban.domain.usecase.TransformToDTO;
-import kanban.domain.usecase.TransformToEntity;
+import kanban.domain.usecase.board.mapper.BoardEntityModelMapper;
 import kanban.domain.usecase.board.repository.IBoardRepository;
 
 public class CommitWorkflowUseCase {
@@ -15,10 +13,10 @@ public class CommitWorkflowUseCase {
     }
 
     public void execute(CommitWorkflowInput input, CommitWorkflowOutput output) {
-        Board board = TransformToEntity.transform(boardRepository.getBoardById(input.getBoardId()));
+        Board board = BoardEntityModelMapper.transformEntityToModel(boardRepository.getBoardById(input.getBoardId()));
         String workflowId = board.commitWorkflow(input.getWorkflowId());
 
-        boardRepository.save(TransformToDTO.transform(board));
+        boardRepository.save(BoardEntityModelMapper.transformModelToEntity(board));
         output.setWorkflowId(workflowId);
 
     }

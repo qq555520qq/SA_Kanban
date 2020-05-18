@@ -1,5 +1,6 @@
 package kanban.domain;
 
+import kanban.domain.adapter.presenter.board.create.CreateBoardPresenter;
 import kanban.domain.model.DomainEventBus;
 import kanban.domain.model.aggregate.board.Board;
 import kanban.domain.usecase.DomainEventHandler;
@@ -32,10 +33,10 @@ public class Utility {
 
     public String createBoard(String boardName){
         CreateBoardUseCase createBoardUseCase = new CreateBoardUseCase(boardRepository);
-        CreateBoardInput input = new CreateBoardInput();
-        CreateBoardOutput output = new CreateBoardOutput();
-
-        input.setBoardName("Board");
+        CreateBoardInput input = createBoardUseCase;
+        CreateBoardOutput output = new CreateBoardPresenter();
+        input.setUserId("1");
+        input.setBoardName(boardName);
         createBoardUseCase.execute(input, output);
         return output.getBoardId();
     }

@@ -1,13 +1,11 @@
 package kanban.domain.usecase.board.create;
 
-public class CreateBoardInput {
-    private String boardName;
+public interface CreateBoardInput {
+    public String getUserId();
 
-    public String getBoardName() {
-        return boardName;
-    }
+    public void setUserId(String userId);
 
-    public void setBoardName(String boardName) {
-        this.boardName = boardName;
-    }
+    public String getBoardName();
+
+    public void setBoardName(String boardName);
 }

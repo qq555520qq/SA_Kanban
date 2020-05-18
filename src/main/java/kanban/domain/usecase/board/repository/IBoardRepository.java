@@ -1,7 +1,9 @@
 package kanban.domain.usecase.board.repository;
 
 
-import kanban.domain.usecase.entity.BoardEntity;
+import kanban.domain.usecase.board.BoardEntity;
+
+import java.util.List;
 
 public interface IBoardRepository {
     void add(BoardEntity board);
@@ -9,4 +11,7 @@ public interface IBoardRepository {
     BoardEntity getBoardById(String boardId);
 
     void save(BoardEntity board);
+
+    List<BoardEntity> getBoardsByUserId(String userId);
+
 }
