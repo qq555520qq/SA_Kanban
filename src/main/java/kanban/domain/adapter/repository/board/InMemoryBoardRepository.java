@@ -1,6 +1,8 @@
 package kanban.domain.adapter.repository.board;
 
-import kanban.domain.usecase.board.repository.IBoardRepository;
+import kanban.domain.adapter.repository.board.data.BoardData;
+import kanban.domain.adapter.repository.board.mapper.BoardEntityDataMapper;
+import kanban.domain.usecase.board.IBoardRepository;
 import kanban.domain.usecase.board.BoardEntity;
 
 import java.util.ArrayList;
@@ -8,22 +10,22 @@ import java.util.List;
 
 public class InMemoryBoardRepository implements IBoardRepository {
 
-    private List<BoardEntity> boards;
+    private List<BoardData> boardDatas;
 
     public InMemoryBoardRepository() {
-        boards = new ArrayList<BoardEntity>();
+        boardDatas = new ArrayList<BoardData>();
     }
 
     @Override
-    public void add(BoardEntity board) {
-        boards.add(board);
+    public void add(BoardEntity boardEntity) {
+        boardDatas.add(BoardEntityDataMapper.transformEntityToData(boardEntity));
     }
 
     @Override
     public BoardEntity getBoardById(String boardId) {
-        for (BoardEntity each : boards) {
+        for (BoardData each : boardDatas) {
             if (each.getBoardId().equalsIgnoreCase(boardId)) {
-                return each;
+                return BoardEntityDataMapper.transformDataToEntity(each);
             }
         }
         throw new RuntimeException("Board is not found,id=" + boardId);
@@ -31,9 +33,9 @@ public class InMemoryBoardRepository implements IBoardRepository {
 
     @Override
     public void save(BoardEntity board) {
-        for (BoardEntity each : boards) {
+        for (BoardData each : boardDatas) {
             if (each.getBoardId().equalsIgnoreCase(board.getBoardId())) {
-                boards.set(boards.indexOf(each), board);
+                boardDatas.set(boardDatas.indexOf(each), BoardEntityDataMapper.transformEntityToData(board));
                 break;
             }
         }
@@ -43,9 +45,9 @@ public class InMemoryBoardRepository implements IBoardRepository {
     public List<BoardEntity> getBoardsByUserId(String userId) {
         List<BoardEntity> boardEntities = new ArrayList<>();
 
-        for (BoardEntity each : boards) {
+        for (BoardData each : boardDatas) {
             if (each.getUserId().equalsIgnoreCase(userId)) {
-                boardEntities.add(each);
+                boardEntities.add(BoardEntityDataMapper.transformDataToEntity(each));
             }
         }
 

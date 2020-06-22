@@ -4,7 +4,7 @@ import kanban.domain.model.aggregate.board.Board;
 import kanban.domain.usecase.board.BoardDTO;
 import kanban.domain.usecase.board.mapper.BoardDTOModelMapper;
 import kanban.domain.usecase.board.mapper.BoardEntityModelMapper;
-import kanban.domain.usecase.board.repository.IBoardRepository;
+import kanban.domain.usecase.board.IBoardRepository;
 import kanban.domain.usecase.board.BoardEntity;
 
 import java.util.ArrayList;

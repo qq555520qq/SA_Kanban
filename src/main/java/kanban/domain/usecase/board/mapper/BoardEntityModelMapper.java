@@ -25,5 +25,4 @@ public class BoardEntityModelMapper {
 
         return boardEntity;
     }
-
 }

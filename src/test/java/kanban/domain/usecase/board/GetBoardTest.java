@@ -2,15 +2,19 @@ package kanban.domain.usecase.board;
 
 import kanban.domain.Utility;
 import kanban.domain.adapter.presenter.board.get.GetBoardsPresenter;
-import kanban.domain.adapter.repository.board.MySqlBoardRepository;
-import kanban.domain.adapter.repository.workflow.MySqlWorkflowRepository;
+import kanban.domain.adapter.repository.board.InMemoryBoardRepository;
+import kanban.domain.adapter.repository.card.InMemoryCardRepository;
+import kanban.domain.adapter.repository.domainEvent.InMemoryDomainEventRepository;
+import kanban.domain.adapter.repository.flowEvent.InMemoryFlowEventRepository;
+import kanban.domain.adapter.repository.workflow.InMemoryWorkflowRepository;
 import kanban.domain.model.DomainEventBus;
-import kanban.domain.usecase.DomainEventHandler;
+import kanban.domain.usecase.card.ICardRepository;
+import kanban.domain.usecase.flowEvent.IFlowEventRepository;
+import kanban.domain.usecase.handler.domainEvent.DomainEventHandler;
 import kanban.domain.usecase.board.get.GetBoardsInput;
 import kanban.domain.usecase.board.get.GetBoardsOutput;
 import kanban.domain.usecase.board.get.GetBoardsUseCase;
-import kanban.domain.usecase.board.repository.IBoardRepository;
-import kanban.domain.usecase.workflow.repository.IWorkflowRepository;
+import kanban.domain.usecase.workflow.IWorkflowRepository;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -22,21 +26,22 @@ public class GetBoardTest {
     private DomainEventBus eventBus;
 
     private Utility utility;
+    private IFlowEventRepository flowEventRepository;
+    private ICardRepository cardRepository;
 
     @Before
     public void setUp() {
-//        workflowRepository = new InMemoryWorkflowRepository();
-//        boardRepository = new InMemoryBoardRepository();
-
-        workflowRepository = new MySqlWorkflowRepository();
-        boardRepository = new MySqlBoardRepository();
+        workflowRepository = new InMemoryWorkflowRepository();
+        boardRepository = new InMemoryBoardRepository();
+        flowEventRepository = new InMemoryFlowEventRepository();
+        cardRepository = new InMemoryCardRepository();
+//        workflowRepository = new MySqlWorkflowRepository();
+//        boardRepository = new MySqlBoardRepository();
 
         eventBus = new DomainEventBus();
-        eventBus.register(new DomainEventHandler(
-                boardRepository,
-                workflowRepository));
+        eventBus.register(new DomainEventHandler(new InMemoryDomainEventRepository()));
 
-        utility = new Utility(boardRepository, workflowRepository, eventBus);
+        utility = new Utility(boardRepository, workflowRepository, flowEventRepository, cardRepository,eventBus);
         utility.createBoard("boardName");
     }
 

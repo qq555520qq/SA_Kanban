@@ -3,7 +3,9 @@ package kanban.domain.adapter.repository.board;
 import kanban.domain.adapter.database.MySqlDatabaseHelper;
 import kanban.domain.adapter.database.table.BoardTable;
 import kanban.domain.adapter.database.table.BoardWorkflowTable;
-import kanban.domain.usecase.board.repository.IBoardRepository;
+import kanban.domain.adapter.repository.board.data.BoardData;
+import kanban.domain.adapter.repository.board.mapper.BoardEntityDataMapper;
+import kanban.domain.usecase.board.IBoardRepository;
 import kanban.domain.usecase.board.BoardEntity;
 
 import java.sql.PreparedStatement;
@@ -21,22 +23,24 @@ public class MySqlBoardRepository implements IBoardRepository {
     }
 
     @Override
-    public void add(BoardEntity board) {
+    public void add(BoardEntity boardEntity) {
         sqlDatabaseHelper.connectToDatabase();
         PreparedStatement preparedStatement = null;
         try {
             sqlDatabaseHelper.transactionStart();
 
-            for (String workflowId : board.getWorkflowIds()) {
-                addBoardWorkflow(workflowId, board.getBoardId());
+            BoardData boardData = BoardEntityDataMapper.transformEntityToData(boardEntity);
+
+            for (String workflowId : boardData.getWorkflowIds()) {
+                addBoardWorkflow(workflowId, boardData.getBoardId());
             }
 
             String sql = String.format("Insert Into %s Values (?, ?, ?)",
                     BoardTable.tableName);
             preparedStatement = sqlDatabaseHelper.getPreparedStatement(sql);
-            preparedStatement.setString(1, board.getUserId());
-            preparedStatement.setString(2, board.getBoardId());
-            preparedStatement.setString(3, board.getBoardName());
+            preparedStatement.setString(1, boardData.getUserId());
+            preparedStatement.setString(2, boardData.getBoardId());
+            preparedStatement.setString(3, boardData.getBoardName());
             preparedStatement.executeUpdate();
             sqlDatabaseHelper.transactionEnd();
         } catch (SQLException e) {
@@ -54,7 +58,7 @@ public class MySqlBoardRepository implements IBoardRepository {
             sqlDatabaseHelper.connectToDatabase();
         }
         ResultSet resultSet = null;
-        BoardEntity board = null;
+        BoardData boardData = null;
         try {
             String query = String.format("Select * From %s Where %s = '%s'",
                     BoardTable.tableName,
@@ -66,11 +70,11 @@ public class MySqlBoardRepository implements IBoardRepository {
                 String _boardId = resultSet.getString(BoardTable.boardId);
                 String name = resultSet.getString(BoardTable.name);
 
-                board = new BoardEntity();
-                board.setUserId(userId);
-                board.setBoardId(_boardId);
-                board.setBoardName(name);
-                board.setWorkflowIds(getWorkflowIdsByBoardId(boardId));
+                boardData = new BoardData();
+                boardData.setUserId(userId);
+                boardData.setBoardId(_boardId);
+                boardData.setBoardName(name);
+                boardData.setWorkflowIds(getWorkflowIdsByBoardId(boardId));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -80,27 +84,29 @@ public class MySqlBoardRepository implements IBoardRepository {
                 sqlDatabaseHelper.closeConnection();
             }
         }
-        return board;
+        return BoardEntityDataMapper.transformDataToEntity(boardData);
     }
 
     @Override
-    public void save(BoardEntity board) {
+    public void save(BoardEntity boardEntity) {
         sqlDatabaseHelper.connectToDatabase();
         PreparedStatement preparedStatement = null;
         try {
             sqlDatabaseHelper.transactionStart();
 
-            for (String workflowId : board.getWorkflowIds()) {
-                addBoardWorkflow(workflowId, board.getBoardId());
+            BoardData boardData = BoardEntityDataMapper.transformEntityToData(boardEntity);
+
+            for (String workflowId : boardData.getWorkflowIds()) {
+                addBoardWorkflow(workflowId, boardData.getBoardId());
             }
 
             String sql = String.format("Insert Into %s Values (?, ?, ?) On Duplicate Key Update %s=?",
                     BoardTable.tableName, BoardTable.name);
             preparedStatement = sqlDatabaseHelper.getPreparedStatement(sql);
-            preparedStatement.setString(1, board.getUserId());
-            preparedStatement.setString(2, board.getBoardId());
-            preparedStatement.setString(3, board.getBoardName());
-            preparedStatement.setString(4, board.getBoardName());
+            preparedStatement.setString(1, boardData.getUserId());
+            preparedStatement.setString(2, boardData.getBoardId());
+            preparedStatement.setString(3, boardData.getBoardName());
+            preparedStatement.setString(4, boardData.getBoardName());
             preparedStatement.executeUpdate();
             sqlDatabaseHelper.transactionEnd();
         } catch (SQLException e) {
@@ -130,13 +136,13 @@ public class MySqlBoardRepository implements IBoardRepository {
                 String boardId = resultSet.getString(BoardTable.boardId);
                 String name = resultSet.getString(BoardTable.name);
 
-                BoardEntity boardEntity = new BoardEntity();
-                boardEntity.setUserId(userId);
-                boardEntity.setBoardId(boardId);
-                boardEntity.setBoardName(name);
-                boardEntity.setWorkflowIds(getWorkflowIdsByBoardId(boardId));
+                BoardData boardData = new BoardData();
+                boardData.setUserId(userId);
+                boardData.setBoardId(boardId);
+                boardData.setBoardName(name);
+                boardData.setWorkflowIds(getWorkflowIdsByBoardId(boardId));
 
-                boardEntities.add(boardEntity);
+                boardEntities.add(BoardEntityDataMapper.transformDataToEntity(boardData));
             }
         } catch (SQLException e) {
             e.printStackTrace();

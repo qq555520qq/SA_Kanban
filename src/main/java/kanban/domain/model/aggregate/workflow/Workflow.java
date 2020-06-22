@@ -2,6 +2,7 @@ package kanban.domain.model.aggregate.workflow;
 
 import kanban.domain.model.aggregate.AggregateRoot;
 import kanban.domain.model.aggregate.workflow.event.CardCommitted;
+import kanban.domain.model.aggregate.workflow.event.CardUnCommitted;
 import kanban.domain.model.aggregate.workflow.event.StageCreated;
 import kanban.domain.model.aggregate.workflow.event.WorkflowCreated;
 
@@ -25,10 +26,10 @@ public class Workflow extends AggregateRoot {
         addDomainEvent(new WorkflowCreated(boardId, workflowId, name));
     }
 
-    public String createStage(String stageName) {
-        Stage stage = new Stage(workflowId, stageName);
+    public String createStage(String stageName, int wipLimit, String layout) {
+        Stage stage = new Stage(workflowId, stageName, wipLimit, layout);
         stages.add(stage);
-        addDomainEvent(new StageCreated(workflowId, stage.getStageId(), stageName));
+        addDomainEvent(new StageCreated(workflowId, stage.getStageId(), stageName, wipLimit, layout));
         return stage.getStageId();
     }
 
@@ -56,8 +57,24 @@ public class Workflow extends AggregateRoot {
     public String commitCardInStage(String cardId, String stageId) {
         Stage stage = getStageById(stageId);
         String _cardId = stage.commitCard(cardId);
-        addDomainEvent(new CardCommitted(stageId, cardId));
+        addDomainEvent(new CardCommitted(workflowId, stageId, cardId));
         return _cardId;
+    }
+
+    public String unCommitCardFromStage(String cardId, String stageId) {
+        Stage stage = getStageById(stageId);
+        String _cardId = stage.unCommitCard(cardId);
+        addDomainEvent(new CardUnCommitted(workflowId, stageId, cardId));
+        return _cardId;
+    }
+
+    public String moveCard(String cardId, String originStageId, String newStageId) {
+        String unCommitCardId = unCommitCardFromStage(cardId, originStageId);
+        String committedCardId = commitCardInStage(cardId, newStageId);
+
+        assert committedCardId == unCommitCardId;
+
+        return committedCardId;
     }
 
     public String getName() {
@@ -83,4 +100,5 @@ public class Workflow extends AggregateRoot {
     public void setStages(List<Stage> stages) {
         this.stages = stages;
     }
+
 }

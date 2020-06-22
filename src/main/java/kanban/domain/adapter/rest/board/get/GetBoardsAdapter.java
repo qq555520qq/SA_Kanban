@@ -3,7 +3,6 @@ package kanban.domain.adapter.rest.board.get;
 
 import kanban.domain.ApplicationContext;
 import kanban.domain.adapter.presenter.board.get.GetBoardsPresenter;
-import kanban.domain.adapter.repository.board.MySqlBoardRepository;
 import kanban.domain.usecase.board.get.GetBoardsInput;
 import kanban.domain.usecase.board.get.GetBoardsUseCase;
 import javax.ws.rs.*;

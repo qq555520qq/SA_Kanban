@@ -1,22 +1,12 @@
 package kanban.domain.usecase.workflow.create;
 
-public class CreateWorkflowInput {
-    private String boardId;
-    private String workflowName;
+public interface CreateWorkflowInput {
 
-    public String getWorkflowName() {
-        return workflowName;
-    }
+    public String getWorkflowName();
 
-    public void setWorkflowName(String workflowName) {
-        this.workflowName = workflowName;
-    }
+    public void setWorkflowName(String workflowName) ;
 
-    public String getBoardId(){
-        return boardId;
-    }
+    public String getBoardId();
 
-    public void setBoardId(String boardId) {
-        this.boardId= boardId;
-    }
+    public void setBoardId(String boardId);
 }

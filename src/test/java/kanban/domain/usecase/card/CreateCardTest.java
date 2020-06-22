@@ -1,19 +1,23 @@
 package kanban.domain.usecase.card;
 
 import kanban.domain.Utility;
-import kanban.domain.adapter.repository.board.MySqlBoardRepository;
-import kanban.domain.adapter.repository.card.MySqlCardRepository;
-import kanban.domain.adapter.repository.workflow.MySqlWorkflowRepository;
+import kanban.domain.adapter.presenter.card.create.CreateCardPresenter;
+import kanban.domain.adapter.repository.board.InMemoryBoardRepository;
+import kanban.domain.adapter.repository.card.InMemoryCardRepository;
+import kanban.domain.adapter.repository.domainEvent.InMemoryDomainEventRepository;
+import kanban.domain.adapter.repository.workflow.InMemoryWorkflowRepository;
 import kanban.domain.model.DomainEventBus;
 import kanban.domain.model.aggregate.card.Card;
 import kanban.domain.model.aggregate.workflow.Workflow;
-import kanban.domain.usecase.DomainEventHandler;
-import kanban.domain.usecase.board.repository.IBoardRepository;
+import kanban.domain.usecase.flowEvent.IFlowEventRepository;
+import kanban.domain.usecase.handler.card.CardEventHandler;
+import kanban.domain.usecase.handler.domainEvent.DomainEventHandler;
+import kanban.domain.usecase.board.IBoardRepository;
 import kanban.domain.usecase.card.create.CreateCardInput;
-import kanban.domain.usecase.card.create.CreateCardOutput;
 import kanban.domain.usecase.card.create.CreateCardUseCase;
-import kanban.domain.usecase.card.repository.ICardRepository;
-import kanban.domain.usecase.workflow.repository.IWorkflowRepository;
+import kanban.domain.usecase.card.mapper.CardEntityModelMapper;
+import kanban.domain.usecase.workflow.mapper.WorkflowEntityModelMapper;
+import kanban.domain.usecase.workflow.IWorkflowRepository;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -27,24 +31,29 @@ public class CreateCardTest {
     private String stageId;
     private IBoardRepository boardRepository;
     private IWorkflowRepository workflowRepository;
-    private ICardRepository cardRepository;
     private DomainEventBus eventBus;
+    private IFlowEventRepository flowEventRepository;
+    private ICardRepository cardRepository;
     private Utility utility;
 
     @Before
     public void setup() {
-//        boardRepository = new InMemoryBoardRepository();
-//        workflowRepository = new InMemoryWorkflowRepository();
-        boardRepository = new MySqlBoardRepository();
-        workflowRepository = new MySqlWorkflowRepository();
-        cardRepository = new MySqlCardRepository();
+        boardRepository = new InMemoryBoardRepository();
+        workflowRepository = new InMemoryWorkflowRepository();
+        cardRepository = new InMemoryCardRepository();
+//        boardRepository = new MySqlBoardRepository();
+//        workflowRepository = new MySqlWorkflowRepository();
+//        cardRepository = new MySqlCardRepository();
 
         eventBus = new DomainEventBus();
-        eventBus.register(new DomainEventHandler(
+        eventBus.register(new DomainEventHandler(new InMemoryDomainEventRepository()));
+        eventBus.register(new CardEventHandler(
                 boardRepository,
-                workflowRepository));
+                workflowRepository,
+                eventBus));
 
-        utility = new Utility(boardRepository, workflowRepository, eventBus);
+        utility = new Utility(boardRepository, workflowRepository, flowEventRepository, cardRepository,eventBus);
+
         boardId = utility.createBoard("test automation");
         workflowId = utility.createWorkflow(boardId,"workflowName");
         stageId = utility.createStage(workflowId,"stageName");
@@ -52,7 +61,9 @@ public class CreateCardTest {
 
     @Test
     public void Create_card_should_commit_card_in_its_stage() {
-        Workflow workflow = workflowRepository.getWorkflowById(workflowId);
+        Workflow workflow = WorkflowEntityModelMapper.transformEntityToModel(
+                workflowRepository.getWorkflowById(workflowId));
+
         assertEquals(0, workflow.getStageCloneById(stageId).getCardIds().size());
 
         CreateCardUseCase createCardUseCase = new CreateCardUseCase(
@@ -66,17 +77,18 @@ public class CreateCardTest {
         input.setSize("xxl");
         input.setWorkflowId(workflowId);
         input.setStageId(stageId);
-        CreateCardOutput output = new CreateCardOutput();
+        CreateCardPresenter output = new CreateCardPresenter();
 
         createCardUseCase.execute(input, output);
 
-        Card card = cardRepository.getCardById(output.getCardId());
+        Card card = CardEntityModelMapper.transformEntityToModel(cardRepository.getCardById(output.getCardId()));
         assertEquals(output.getCardName(), card.getName());
         assertEquals("description", card.getDescription());
         assertEquals("general", card.getType());
         assertEquals("xxl", card.getSize());
 
-        workflow = workflowRepository.getWorkflowById(workflowId);
+        workflow = WorkflowEntityModelMapper.transformEntityToModel(
+                workflowRepository.getWorkflowById(workflowId));
         assertEquals(1, workflow.getStageCloneById(stageId).getCardIds().size());
     }
 }

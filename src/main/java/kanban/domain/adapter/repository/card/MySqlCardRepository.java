@@ -2,8 +2,10 @@ package kanban.domain.adapter.repository.card;
 
 import kanban.domain.adapter.database.table.CardTable;
 import kanban.domain.adapter.database.MySqlDatabaseHelper;
-import kanban.domain.model.aggregate.card.Card;
-import kanban.domain.usecase.card.repository.ICardRepository;
+import kanban.domain.adapter.repository.card.data.CardData;
+import kanban.domain.adapter.repository.card.mapper.CardEntityDataMapper;
+import kanban.domain.usecase.card.CardEntity;
+import kanban.domain.usecase.card.ICardRepository;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -18,7 +20,7 @@ public class MySqlCardRepository implements ICardRepository {
     }
 
     @Override
-    public void add(Card card) {
+    public void add(CardEntity cardEntity) {
         sqlDatabaseHelper.connectToDatabase();
         PreparedStatement preparedStatement = null;
         try {
@@ -27,11 +29,11 @@ public class MySqlCardRepository implements ICardRepository {
             String sql = String.format("Insert Into %s Values (?, ?, ?, ?, ?)",
                     CardTable.tableName);
             preparedStatement = sqlDatabaseHelper.getPreparedStatement(sql);
-            preparedStatement.setString(1, card.getCardId());
-            preparedStatement.setString(2, card.getName());
-            preparedStatement.setString(3, card.getDescription());
-            preparedStatement.setString(4, card.getType());
-            preparedStatement.setString(5, card.getSize());
+            preparedStatement.setString(1, cardEntity.getCardId());
+            preparedStatement.setString(2, cardEntity.getName());
+            preparedStatement.setString(3, cardEntity.getDescription());
+            preparedStatement.setString(4, cardEntity.getType());
+            preparedStatement.setString(5, cardEntity.getSize());
             preparedStatement.executeUpdate();
             sqlDatabaseHelper.transactionEnd();
         } catch (SQLException e) {
@@ -44,12 +46,12 @@ public class MySqlCardRepository implements ICardRepository {
     }
 
     @Override
-    public Card getCardById(String cardId) {
+    public CardEntity getCardById(String cardId) {
         if(!sqlDatabaseHelper.isTransacting()) {
             sqlDatabaseHelper.connectToDatabase();
         }
         ResultSet resultSet = null;
-        Card card = null;
+        CardData cardData = null;
         try {
             String query = String.format("Select * From %s Where %s = '%s'",
                     CardTable.tableName,
@@ -62,12 +64,12 @@ public class MySqlCardRepository implements ICardRepository {
                 String type = resultSet.getString(CardTable.type);
                 String size = resultSet.getString(CardTable.size);
 
-                card = new Card();
-                card.setCardId(cardId);
-                card.setName(name);
-                card.setDescription(description);
-                card.setType(type);
-                card.setSize(size);
+                cardData = new CardData();
+                cardData.setCardId(cardId);
+                cardData.setName(name);
+                cardData.setDescription(description);
+                cardData.setType(type);
+                cardData.setSize(size);
 
             }
             resultSet.close();
@@ -80,15 +82,15 @@ public class MySqlCardRepository implements ICardRepository {
             }
         }
 
-        if(card == null) {
+        if(cardData == null) {
             throw new RuntimeException("Card is not found,id=" + cardId);
         }
 
-        return card;
+        return CardEntityDataMapper.transformDataToEntity(cardData);
     }
 
     @Override
-    public void save(Card card) {
+    public void save(CardEntity cardEntity) {
         sqlDatabaseHelper.connectToDatabase();
         PreparedStatement preparedStatement = null;
         try {
@@ -97,15 +99,15 @@ public class MySqlCardRepository implements ICardRepository {
             String sql = String.format("Insert Into %s Values (? , ?, ?, ?, ?) On Duplicate Key Update %s=? %s=? %s=? %s=?",
                     CardTable.tableName, CardTable.name, CardTable.description, CardTable.type, CardTable.size);
             preparedStatement = sqlDatabaseHelper.getPreparedStatement(sql);
-            preparedStatement.setString(1, card.getCardId());
-            preparedStatement.setString(2, card.getName());
-            preparedStatement.setString(3, card.getDescription());
-            preparedStatement.setString(4, card.getType());
-            preparedStatement.setString(5, card.getSize());
-            preparedStatement.setString(6, card.getName());
-            preparedStatement.setString(7, card.getDescription());
-            preparedStatement.setString(8, card.getType());
-            preparedStatement.setString(9, card.getSize());
+            preparedStatement.setString(1, cardEntity.getCardId());
+            preparedStatement.setString(2, cardEntity.getName());
+            preparedStatement.setString(3, cardEntity.getDescription());
+            preparedStatement.setString(4, cardEntity.getType());
+            preparedStatement.setString(5, cardEntity.getSize());
+            preparedStatement.setString(6, cardEntity.getName());
+            preparedStatement.setString(7, cardEntity.getDescription());
+            preparedStatement.setString(8, cardEntity.getType());
+            preparedStatement.setString(9, cardEntity.getSize());
             preparedStatement.executeUpdate();
             sqlDatabaseHelper.transactionEnd();
         } catch (SQLException e) {

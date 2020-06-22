@@ -1,27 +1,27 @@
 package kanban.domain.adapter.repository.card;
 
-import kanban.domain.model.aggregate.card.Card;
-import kanban.domain.usecase.card.repository.ICardRepository;
+import kanban.domain.usecase.card.CardEntity;
+import kanban.domain.usecase.card.ICardRepository;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class InMemoryCardRepository implements ICardRepository {
 
-    private List<Card> cards;
+    private List<CardEntity> cards;
 
     public InMemoryCardRepository() {
-        cards = new ArrayList<Card>();
+        cards = new ArrayList<CardEntity>();
     }
 
     @Override
-    public void add(Card card) {
-        cards.add(card);
+    public void add(CardEntity cardEntity) {
+        cards.add(cardEntity);
     }
 
     @Override
-    public Card getCardById(String cardId) {
-        for (Card each : cards) {
+    public CardEntity getCardById(String cardId) {
+        for (CardEntity each : cards) {
             if (each.getCardId().equalsIgnoreCase(cardId)) {
                 return each;
             }
@@ -31,10 +31,10 @@ public class InMemoryCardRepository implements ICardRepository {
 
 
     @Override
-    public void save(Card card) {
-        for (Card each : cards) {
-            if (each.getCardId().equalsIgnoreCase(card.getCardId())) {
-                cards.set(cards.indexOf(each), card);
+    public void save(CardEntity cardEntity) {
+        for (CardEntity each : cards) {
+            if (each.getCardId().equalsIgnoreCase(cardEntity.getCardId())) {
+                cards.set(cards.indexOf(each), cardEntity);
                 break;
             }
         }

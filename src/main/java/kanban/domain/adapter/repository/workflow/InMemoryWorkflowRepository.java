@@ -1,41 +1,43 @@
 package kanban.domain.adapter.repository.workflow;
 
-import kanban.domain.model.aggregate.workflow.Workflow;
-import kanban.domain.usecase.workflow.repository.IWorkflowRepository;
+import kanban.domain.adapter.repository.workflow.data.WorkflowData;
+import kanban.domain.adapter.repository.workflow.mapper.WorkflowEntityDataMapper;
+import kanban.domain.usecase.workflow.WorkflowEntity;
+import kanban.domain.usecase.workflow.IWorkflowRepository;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class InMemoryWorkflowRepository implements IWorkflowRepository {
 
-    private List<Workflow> workflows;
+    private List<WorkflowData> workflowDatas;
 
     public InMemoryWorkflowRepository() {
-        workflows = new ArrayList<Workflow>();
+        workflowDatas = new ArrayList<WorkflowData>();
     }
 
     @Override
-    public void add(Workflow workflow) {
-        workflows.add(workflow);
+    public void add(WorkflowEntity workflowEntity) {
+        workflowDatas.add(WorkflowEntityDataMapper.transformEntityToData(workflowEntity));
     }
 
     @Override
-    public Workflow getWorkflowById(String workflowId) {
+    public WorkflowEntity getWorkflowById(String workflowId) {
 
-        for (Workflow each : workflows) {
+        for (WorkflowData each : workflowDatas) {
             if (each.getWorkflowId().equalsIgnoreCase(workflowId)) {
-                return each;
+                return WorkflowEntityDataMapper.transformDataToEntity(each);
             }
         }
         throw new RuntimeException("Workflow is not found,id=" + workflowId);
     }
 
     @Override
-    public void save(Workflow workflow) {
+    public void save(WorkflowEntity workflowEntity) {
 
-        for (Workflow each : workflows) {
-            if (each.getWorkflowId().equalsIgnoreCase(workflow.getWorkflowId())) {
-                workflows.set(workflows.indexOf(each), workflow);
+        for (WorkflowData each : workflowDatas) {
+            if (each.getWorkflowId().equalsIgnoreCase(workflowEntity.getWorkflowId())) {
+                workflowDatas.set(workflowDatas.indexOf(each), WorkflowEntityDataMapper.transformEntityToData(workflowEntity));
                 break;
             }
         }

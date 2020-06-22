@@ -1,14 +1,8 @@
 package kanban.domain.usecase.card.commit;
 
-public class CommitCardOutput {
+public interface CommitCardOutput {
 
-    private String cardId;
+    public String getCardId();
 
-    public String getCardId() {
-        return cardId;
-    }
-
-    public void setCardId(String cardId) {
-        this.cardId = cardId;
-    }
+    public void setCardId(String cardId);
 }

@@ -1,23 +1,14 @@
 package kanban.domain.usecase.card.create;
 
-public class CreateCardOutput {
+public interface CreateCardOutput {
     
-    private String cardName;
-    private String cardId;
 
-    public String getCardName() {
-        return cardName;
-    }
 
-    public void setCardName(String cardName) {
-        this.cardName = cardName;
-    }
+    public String getCardName();
 
-    public String getCardId() {
-        return cardId;
-    }
+    public void setCardName(String cardName);
 
-    public void setCardId(String cardId) {
-        this.cardId = cardId;
-    }
+    public String getCardId();
+
+    public void setCardId(String cardId);
 }

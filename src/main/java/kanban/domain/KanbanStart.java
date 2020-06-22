@@ -13,6 +13,7 @@ public class KanbanStart extends HttpServlet implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent arg0) {
+        ApplicationContext.getInstance();
         System.out.println("Kanban Start!");
 
     }

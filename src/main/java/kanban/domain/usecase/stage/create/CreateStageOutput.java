@@ -1,22 +1,8 @@
 package kanban.domain.usecase.stage.create;
 
-public class CreateStageOutput {
-    private String stageName;
-    private String stageId;
+public interface CreateStageOutput {
 
-    public String getStageName() {
-        return stageName;
-    }
+    public String getStageId();
 
-    public void setStageName(String stageName) {
-        this.stageName = stageName;
-    }
-
-    public String getStageId() {
-        return stageId;
-    }
-
-    public void setStageId(String stageId) {
-        this.stageId = stageId;
-    }
+    public void setStageId(String stageId);
 }

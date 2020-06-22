@@ -4,9 +4,12 @@ import kanban.domain.adapter.database.MySqlDatabaseHelper;
 import kanban.domain.adapter.database.table.StageCardTable;
 import kanban.domain.adapter.database.table.StageTable;
 import kanban.domain.adapter.database.table.WorkflowTable;
-import kanban.domain.model.aggregate.workflow.Stage;
-import kanban.domain.model.aggregate.workflow.Workflow;
-import kanban.domain.usecase.workflow.repository.IWorkflowRepository;
+import kanban.domain.adapter.repository.workflow.data.StageData;
+import kanban.domain.adapter.repository.workflow.data.WorkflowData;
+import kanban.domain.adapter.repository.workflow.mapper.WorkflowEntityDataMapper;
+import kanban.domain.usecase.stage.StageEntity;
+import kanban.domain.usecase.workflow.WorkflowEntity;
+import kanban.domain.usecase.workflow.IWorkflowRepository;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -24,21 +27,23 @@ public class MySqlWorkflowRepository implements IWorkflowRepository {
 
 
     @Override
-    public void add(Workflow workflow) {
+    public void add(WorkflowEntity workflowEntity) {
         sqlDatabaseHelper.connectToDatabase();
         PreparedStatement preparedStatement = null;
         try {
             sqlDatabaseHelper.transactionStart();
 
-            for(Stage stage : workflow.getStages()) {
-                addStage(stage);
+            WorkflowData workflowData = WorkflowEntityDataMapper.transformEntityToData(workflowEntity);
+
+            for(StageEntity stageEntity : workflowEntity.getStageEntities()) {
+                addStage(stageEntity);
             }
 
             String sql = String.format("Insert Into %s Values (? , ?)",
                     WorkflowTable.tableName, WorkflowTable.title);
             preparedStatement = sqlDatabaseHelper.getPreparedStatement(sql);
-            preparedStatement.setString(1, workflow.getWorkflowId());
-            preparedStatement.setString(2, workflow.getName());
+            preparedStatement.setString(1, workflowData.getWorkflowId());
+            preparedStatement.setString(2, workflowData.getName());
             preparedStatement.executeUpdate();
             sqlDatabaseHelper.transactionEnd();
         } catch (SQLException e) {
@@ -51,12 +56,12 @@ public class MySqlWorkflowRepository implements IWorkflowRepository {
     }
 
     @Override
-    public Workflow getWorkflowById(String workflowId) {
+    public WorkflowEntity getWorkflowById(String workflowId) {
         if(!sqlDatabaseHelper.isTransacting()) {
             sqlDatabaseHelper.connectToDatabase();
         }
         ResultSet resultSet = null;
-        Workflow workflow = null;
+        WorkflowData workflowData = null;
         try {
             String query = String.format("Select * From %s Where %s = '%s'",
                     WorkflowTable.tableName,
@@ -66,10 +71,10 @@ public class MySqlWorkflowRepository implements IWorkflowRepository {
             if (resultSet.first()) {
                 String name = resultSet.getString(WorkflowTable.title);
 
-                workflow = new Workflow();
-                workflow.setWorkflowId(workflowId);
-                workflow.setName(name);
-                workflow.setStages(getStagesByWorkflowId(workflowId));
+                workflowData = new WorkflowData();
+                workflowData.setWorkflowId(workflowId);
+                workflowData.setName(name);
+                workflowData.setStageDatas(getStagesByWorkflowId(workflowId));
              }
             resultSet.close();
         } catch (SQLException e) {
@@ -81,30 +86,30 @@ public class MySqlWorkflowRepository implements IWorkflowRepository {
             }
         }
 
-        if(workflow == null) {
+        if(workflowData == null) {
             throw new RuntimeException("Workflow is not found,id=" + workflowId);
         }
 
-        return workflow;
+        return WorkflowEntityDataMapper.transformDataToEntity(workflowData);
     }
 
     @Override
-    public void save(Workflow workflow) {
+    public void save(WorkflowEntity workflowEntity) {
         sqlDatabaseHelper.connectToDatabase();
         PreparedStatement preparedStatement = null;
         try {
             sqlDatabaseHelper.transactionStart();
 
-            for(Stage stage : workflow.getStages()) {
-                addStage(stage);
+            for(StageEntity stageEntity : workflowEntity.getStageEntities()) {
+                addStage(stageEntity);
             }
 
             String sql = String.format("Insert Into %s Values (? , ?) On Duplicate Key Update %s=?",
                     WorkflowTable.tableName, WorkflowTable.title);
             preparedStatement = sqlDatabaseHelper.getPreparedStatement(sql);
-            preparedStatement.setString(1, workflow.getWorkflowId());
-            preparedStatement.setString(2, workflow.getName());
-            preparedStatement.setString(3, workflow.getName());
+            preparedStatement.setString(1, workflowEntity.getWorkflowId());
+            preparedStatement.setString(2, workflowEntity.getName());
+            preparedStatement.setString(3, workflowEntity.getName());
             preparedStatement.executeUpdate();
             sqlDatabaseHelper.transactionEnd();
         } catch (SQLException e) {
@@ -117,27 +122,27 @@ public class MySqlWorkflowRepository implements IWorkflowRepository {
     }
 
 
-    private void addStage(Stage stage) throws SQLException {
+    private void addStage(StageEntity stageEntity) throws SQLException {
 
-        for(String cardId: stage.getCardIds()) {
-            addCard(cardId, stage.getStageId());
+        for(String cardId: stageEntity.getCardIds()) {
+            addCard(cardId, stageEntity.getStageId());
         }
 
         String sql = String.format("Insert Into %s Values ( ?, ?, ?) On Duplicate Key Update %s=?",
                 StageTable.tableName, StageTable.name);
         PreparedStatement preparedStatement = sqlDatabaseHelper.getPreparedStatement(sql);
-        preparedStatement.setString(1, stage.getStageId());
-        preparedStatement.setString(2, stage.getWorkflowId());
-        preparedStatement.setString(3, stage.getName());
-        preparedStatement.setString(4, stage.getName());
+        preparedStatement.setString(1, stageEntity.getStageId());
+        preparedStatement.setString(2, stageEntity.getWorkflowId());
+        preparedStatement.setString(3, stageEntity.getName());
+        preparedStatement.setString(4, stageEntity.getName());
 
         preparedStatement.executeUpdate();
         sqlDatabaseHelper.closePreparedStatement(preparedStatement);
     }
 
-    private List<Stage> getStagesByWorkflowId(String workflowId) {
+    private List<StageData> getStagesByWorkflowId(String workflowId) {
         ResultSet resultSet = null;
-        List<Stage> stages = new ArrayList<>();
+        List<StageData> stageDatas = new ArrayList<>();
         try {
             String query = String.format("Select * From %s Where %s = '%s'",
                     StageTable.tableName,
@@ -147,12 +152,12 @@ public class MySqlWorkflowRepository implements IWorkflowRepository {
             while (resultSet.next()) {
                 String stageId = resultSet.getString(StageTable.stage_id);
                 String name = resultSet.getString(StageTable.name);
-                Stage stage = new Stage();
-                stage.setWorkflowId(workflowId);
-                stage.setStageId(stageId);
-                stage.setName(name);
-                stage.setCardIds(getCardIdsByStageId(stageId));
-                stages.add(stage);
+                StageData stageData = new StageData();
+                stageData.setWorkflowId(workflowId);
+                stageData.setStageId(stageId);
+                stageData.setName(name);
+                stageData.setCardIds(getCardIdsByStageId(stageId));
+                stageDatas.add(stageData);
             }
             resultSet.close();
         } catch (SQLException e) {
@@ -160,7 +165,7 @@ public class MySqlWorkflowRepository implements IWorkflowRepository {
         } finally {
             sqlDatabaseHelper.closeResultSet(resultSet);
         }
-        return stages;
+        return stageDatas;
     }
 
     private void addCard(String cardId, String stageId) throws SQLException {

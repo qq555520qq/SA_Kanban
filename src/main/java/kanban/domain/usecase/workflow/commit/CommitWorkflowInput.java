@@ -1,22 +1,11 @@
 package kanban.domain.usecase.workflow.commit;
 
-public class CommitWorkflowInput {
-    private String boardId;
-    private String workflowId;
+public interface CommitWorkflowInput {
+    public String getBoardId();
 
-    public String getBoardId() {
-        return boardId;
-    }
+    public String getWorkflowId();
 
-    public String getWorkflowId() {
-        return workflowId;
-    }
+    public void setBoardId(String boardId);
 
-    public void setBoardId(String boardId) {
-        this.boardId = boardId;
-    }
-
-    public void setWorkflowId(String workflowId) {
-        this.workflowId = workflowId;
-    }
+    public void setWorkflowId(String workflowId);
 }

@@ -1,5 +1,7 @@
 package kanban.domain.model.common;
 
+import java.text.DateFormat;
+import java.text.ParseException;
 import java.util.Date;
 
 public class DateProvider {
@@ -15,6 +17,11 @@ public class DateProvider {
     public static void setDate(Date now)
     {
         date = now;
+    }
+
+    public static void setDate(String date) throws ParseException {
+        Date _date = DateFormat.getDateInstance().parse(date);
+        setDate(_date);
     }
 
     public static void resetDate()
